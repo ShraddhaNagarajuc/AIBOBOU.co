@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>AIBOBOU AAP KI AWAAZ LIST</title>
@@ -10,32 +11,66 @@
             padding: 25px;
             background: #fafafa;
         }
+
         h2 {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 26px;
         }
 
         .controls {
             display: flex;
             gap: 15px;
             margin-bottom: 20px;
-            flex-wrap: wrap;
+            align-items: center;
         }
 
-        input, select, button {
+        input,
+        .dropdown-box,
+        button {
             padding: 8px;
             font-size: 15px;
         }
 
-        button {
-            background: #0057ff;
-            color: white;
-            border: none;
+        .dropdown-box {
+            width: 150px;
+            background: white;
+            border: 1px solid #ccc;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 4px;
         }
 
-        button:hover {
-            background: #003fb8;
+        /* CATEGORY DROPDOWN CLEAN UI */
+        .category-dropdown {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 5px;
+            width: 230px;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+        }
+
+        .category-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            white-space: nowrap;
+        }
+
+        .category-option input[type="checkbox"] {
+            transform: scale(1.1);
+            cursor: pointer;
+        }
+
+        .category-option label {
+            cursor: pointer;
+            font-size: 14px;
         }
 
         table {
@@ -43,145 +78,199 @@
             border-collapse: collapse;
             background: white;
         }
-        th, td {
+
+        th,
+        td {
             padding: 12px;
             border: 1px solid #d9d9d9;
             text-align: left;
         }
+
         th {
             background: #e9f1ff;
-        }
-        tr:hover {
-            background: #f4f8ff;
-        }
-        a {
-            color: #0057ff;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        a:hover {
-            text-decoration: underline;
+            font-size: 15px;
         }
 
         td.date-cell {
             white-space: nowrap;
-            width: 140px;
+            width: 130px;
+        }
+
+        tr:hover {
+            background: #f4f8ff;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .tooltip:hover::after {
+            content: "Click to view";
+            position: absolute;
+            top: -28px;
+            left: 0;
+            background: black;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
         }
     </style>
 </head>
 
 <body>
 
-<h2>AIBOBOU AAP KI AWAAZ LIST</h2>
+    <h2>AIBOBOU AAP KI AWAAZ LIST</h2>
 
-<!-- FILTER CONTROLS -->
-<div class="controls">
-    <input type="text" id="searchBox" placeholder="Search description...">
+    <div class="controls">
 
-    <select id="categoryFilter">
-        <option value="">All Categories</option>
-    </select>
+        <input type="text" id="searchBox" placeholder="Search description…" style="width:200px;">
 
-    <input type="date" id="dateFilter">
-    
-    <button onclick="clearFilters()">Clear Filters</button>
-</div>
+        <div>
+            <div id="categoryBox" class="dropdown-box">Category ▾</div>
 
-<!-- TABLE -->
-<table>
-    <thead>
-        <tr>
-            <th>Sr.No</th>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Category</th>
-        </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-</table>
+            <div id="categoryDropdown" class="category-dropdown">
+                <div class="category-option">
+                    <input type="checkbox" value="Transfer Related">
+                    <label>Transfer Related</label>
+                </div>
+                <div class="category-option">
+                    <input type="checkbox" value="Promotions Related">
+                    <label>Promotions Related</label>
+                </div>
+                <div class="category-option">
+                    <input type="checkbox" value="Operational Issues">
+                    <label>Operational Issues</label>
+                </div>
+                <div class="category-option">
+                    <input type="checkbox" value="Staff Welfare Measures">
+                    <label>Staff Welfare Measures</label>
+                </div>
+                <div class="category-option">
+                    <input type="checkbox" value="Staffing Related">
+                    <label>Staffing Related</label>
+                </div>
+                <div class="category-option">
+                    <input type="checkbox" value="HR Related issues">
+                    <label>HR Related issues</label>
+                </div>
+                <div class="category-option">
+                    <input type="checkbox" value="Staff Accountability and disciplinary Policy">
+                    <label>Staff Accountability and disciplinary Policy</label>
+                </div>
+                <div class="category-option">
+                    <input type="checkbox" value="Miscelleneous">
+                    <label>Miscelleneous</label>
+                </div>
+            </div>
+        </div>
 
-<script>
-    const endpoint =
-        "https://script.google.com/macros/s/AKfycbwlHJE4IVzQCZIedoMpw0yJxnKgK90iFYAU4mXkyo_P036ic_1Flu-1JK8nCFbliL-jnQ/exec";
+        <input type="text" id="dateInput" placeholder="Enter date" style="width:150px;">
 
-    let globalData = [];
+        <button onclick="clearFilters()">Clear Filters</button>
 
-    // Load data from Apps Script
-    async function load() {
-        const res = await fetch(endpoint);
-        const data = await res.json();
-        globalData = data;
+    </div>
 
-        // Fill category dropdown
-        const catDropdown = document.getElementById("categoryFilter");
-        const categories = [...new Set(data.map(x => x.category).filter(Boolean))];
+    <table>
+        <thead>
+            <tr>
+                <th>Sr.No</th>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
 
-        categories.forEach(cat => {
-            const opt = document.createElement("option");
-            opt.value = cat;
-            opt.textContent = cat;
-            catDropdown.appendChild(opt);
+    <script>
+        const endpoint = "https://script.google.com/macros/s/AKfycbwlHJE4IVzQCZIedoMpw0yJxnKgK90iFYAU4mXkyo_P036ic_1Flu-1JK8nCFbliL-jnQ/exec";
+
+        let globalData = [];
+
+        async function load() {
+            const res = await fetch(endpoint);
+            globalData = await res.json();
+            render(globalData);
+        }
+
+        /** CATEGORY DROPDOWN **/
+        const categoryBox = document.getElementById("categoryBox");
+        const categoryDropdown = document.getElementById("categoryDropdown");
+
+        categoryBox.onclick = () => {
+            categoryDropdown.style.display =
+                (categoryDropdown.style.display === "block" ? "none" : "block");
+        };
+
+        document.addEventListener("click", e => {
+            if (!categoryBox.contains(e.target) && !categoryDropdown.contains(e.target)) {
+                categoryDropdown.style.display = "none";
+            }
         });
 
-        render();
+        function getSelectedCategories() {
+            return Array.from(categoryDropdown.querySelectorAll("input[type=checkbox]:checked"))
+                .map(cb => cb.value);
+        }
 
-        document.getElementById("searchBox").onkeyup = render;
-        document.getElementById("categoryFilter").onchange = render;
-        document.getElementById("dateFilter").onchange = render;
-    }
+        /** FILTERS **/
+        function render(data) {
+            const searchText = document.getElementById("searchBox").value.toLowerCase();
+            const dateText = document.getElementById("dateInput").value.trim();
+            const selectedCategories = getSelectedCategories();
 
-    // Render table based on filters
-    function render() {
-        const searchText = document.getElementById("searchBox").value.toLowerCase();
-        const catFilter = document.getElementById("categoryFilter").value;
-        const dateFilter = document.getElementById("dateFilter").value;
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
 
-        const tbody = document.getElementById("tableBody");
-        tbody.innerHTML = "";
+            data.filter(row => {
 
-        globalData
-            .filter(r =>
-                r.description.toLowerCase().includes(searchText) &&
-                (catFilter === "" || r.category === catFilter) &&
-                (dateFilter === "" || r.date === formatDate(dateFilter))
-            )
-            .forEach(r => {
-                const tr = document.createElement("tr");
-                const hasLink = r.link && r.link.trim() !== "";
+                if (!row.description.toLowerCase().includes(searchText)) return false;
 
-                tr.innerHTML = `
-                    <td>${r.srno}</td>
-                    <td class="date-cell">${r.date}</td>
-                    <td>
-                        ${hasLink
-                            ? `<a href="${r.link}" target="_blank">${r.description}</a>`
-                            : `${r.description}`
-                        }
-                    </td>
-                    <td>${r.category}</td>
-                `;
+                if (dateText !== "") {
+                    if (!row.date.includes(dateText)) return false;
+                }
 
-                tbody.appendChild(tr);
-            });
-    }
+                if (selectedCategories.length > 0) {
+                    if (!selectedCategories.includes(row.category)) return false;
+                }
 
-    // Clear all filters
-    function clearFilters() {
-        document.getElementById("searchBox").value = "";
-        document.getElementById("categoryFilter").value = "";
-        document.getElementById("dateFilter").value = "";
-        render();
-    }
+                return true;
+            })
+                .forEach(r => {
+                    const tr = document.createElement("tr");
 
-    // Convert YYYY-MM-DD → DD-MM-YYYY (matches sheet)
-    function formatDate(d) {
-        if (!d) return "";
-        const [y, m, day] = d.split("-");
-        return `${Number(day)}-${Number(m)}-${y}`;
-    }
+                    const descHTML = r.link
+                        ? `<a href="${r.link}" target="_blank" class="tooltip">${r.description}</a>`
+                        : r.description;
 
-    load();
-</script>
+                    tr.innerHTML = `
+                        <td>${r.srno}</td>
+                        <td class="date-cell">${r.date}</td>
+                        <td>${descHTML}</td>
+                        <td>${r.category}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+        }
+
+        document.getElementById("searchBox").onkeyup = () => render(globalData);
+        document.getElementById("dateInput").onkeyup = () => render(globalData);
+        categoryDropdown.onchange = () => render(globalData);
+
+        function clearFilters() {
+            document.getElementById("searchBox").value = "";
+            document.getElementById("dateInput").value = "";
+            categoryDropdown.querySelectorAll("input").forEach(cb => cb.checked = false);
+            render(globalData);
+        }
+
+        load();
+    </script>
 
 </body>
+
 </html>
