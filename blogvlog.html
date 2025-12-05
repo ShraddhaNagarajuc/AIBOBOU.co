@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AIBOBOU Blogs</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .card {
+      display: flex;
+      align-items: flex-start;
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+    }
+
+    .thumbnail {
+      width: 160px;
+      height: 110px;
+      border-radius: 10px;
+      object-fit: cover;
+      margin-right: 16px;
+      background: #ddd;
+    }
+
+    .content {
+      flex: 1;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #111;
+    }
+
+    .summary {
+      font-size: 14px;
+      color: #444;
+    }
+  </style>
+
+</head>
+
+<body>
+
+<h2>AIBOBOU Blog Feed</h2>
+<div id="feed"></div>
+
+<script>
+  const endpoint = "https://script.google.com/macros/s/AKfycbwCSqfZpW5HDw9P-B5La_dZjR7yGg-_Y_mXUkwbAv2XCQnveaaF-RlT0aFzRLdipPi4/exec";
+
+  async function loadFeed() {
+    const res = await fetch(endpoint);
+    const blogs = await res.json();
+
+    const feed = document.getElementById("feed");
+
+    blogs.forEach(b => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.onclick = () => window.open(b.url, "_blank");
+
+      card.innerHTML = `
+        <img class="thumbnail" src="${b.image}">
+        <div class="content">
+          <div class="title">${b.title}</div>
+          <div class="summary">${b.summary}</div>
+        </div>
+      `;
+
+      feed.appendChild(card);
+    });
+  }
+
+  loadFeed();
+</script>
+
+</body>
+</html>
