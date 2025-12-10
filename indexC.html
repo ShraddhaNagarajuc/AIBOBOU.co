@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AIBOBOU CIRCULARS LIST</title>
+<title>AIBOBOU AAP KI AWAAZ LIST</title>
 
 <style>
     body {
@@ -10,18 +10,19 @@
         padding: 25px;
         background: #fafafa;
     }
-    h2 { margin-bottom: 15px; }
-
+    h2 {
+        margin-bottom: 15px;
+    }
     .controls {
         display: flex;
-        gap: 12px;
+        flex-wrap: wrap;
+        gap: 15px;
         margin-bottom: 20px;
     }
-    input, button {
+    input, select, button {
         padding: 8px;
         font-size: 15px;
     }
-
     table {
         width: 100%;
         border-collapse: collapse;
@@ -30,75 +31,41 @@
     th, td {
         padding: 12px;
         border: 1px solid #d9d9d9;
+        text-align: left;
     }
     th {
         background: #e9f1ff;
     }
-    tr:hover { background: #f4f8ff; }
-    a { color: #0057ff; font-weight: 600; text-decoration: none; }
-
-    /* MODAL BOX */
-    .modal-bg {
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.45);
-        z-index: 900;
-        justify-content: center;
-        align-items: center;
+    tr:hover {
+        background: #f4f8ff;
     }
-    .modal-box {
-        width: 500px;
-        background: white;
-        padding: 25px;
-        border-radius: 8px;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-        animation: fadeIn 0.25s;
+    a {
+        color: #0057ff;
+        text-decoration: none;
+        font-weight: 600;
     }
-    @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
-
-    .modal-heading {
-        font-size: 20px;
-        margin-bottom: 12px;
-        font-weight: bold;
-    }
-    .modal-summary {
-        font-size: 15px;
-        margin-bottom: 20px;
-        line-height: 1.45;
-    }
-    .modal-actions {
-        text-align: right;
-    }
-    .modal-btn {
-        padding: 8px 12px;
-        background: #0057ff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    .modal-close {
-        padding: 8px 12px;
-        background: #999;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-right: 10px;
+    a:hover {
+        text-decoration: underline;
     }
 </style>
 </head>
 
 <body>
 
-<h2>AIBOBOU CIRCULARS LIST</h2>
+<h2>AIBOBOU AAP KI AWAAZ LIST</h2>
 
 <div class="controls">
+
     <input type="text" id="searchBox" placeholder="Search description…">
+
+    <!-- CATEGORY FILTER -->
+    <select id="categoryFilter">
+        <option value="">All Categories</option>
+    </select>
+
     <input type="text" id="fromDate" placeholder="From (dd-mm-yyyy)">
     <input type="text" id="toDate" placeholder="To (dd-mm-yyyy)">
+
     <button onclick="clearFilters()">Clear Filters</button>
 </div>
 
@@ -108,116 +75,99 @@
             <th>Sr.No</th>
             <th>Date</th>
             <th>Description</th>
-            <th>Link</th>
+            <th>Category</th>
         </tr>
     </thead>
     <tbody id="tableBody"></tbody>
 </table>
 
-<!-- MODAL -->
-<div class="modal-bg" id="modalBg">
-    <div class="modal-box">
-        <div class="modal-heading" id="modalTitle"></div>
-        <div class="modal-summary" id="modalSummary"></div>
-
-        <div class="modal-actions">
-            <button class="modal-close" onclick="closeModal()">Close</button>
-            <a id="modalLink" target="_blank">
-                <button class="modal-btn">Read Full Circular</button>
-            </a>
-        </div>
-    </div>
-</div>
-
 <script>
+    const endpoint = "https://script.google.com/macros/s/AKfycbziJ98z46bS9Fh7yEZK-ZzScAfcMbK9H_q5buw9CU5r56-cvguidod8f94Up4_BSPgvpw/exec";
+    let allData = [];
 
-// 🔗 CHANGE THIS
-const endpoint = "https://script.google.com/macros/s/AKfycbwyCiz3xzYa1nAp5vSHpI9i7wi8TIv3Gzllh7clwbsUM45ICTgng_kvoBaKXUYwjfM9/exec";
+    async function load() {
+        try {
+            const res = await fetch(endpoint);
+            const data = await res.json();
+            allData = data;
 
-let globalData = [];
+            buildCategoryDropdown(data);
+            render(data);
 
-function parseSmartDate(input) {
-    if (!input) return null;
-    input = input.replace(/\//g, "-");
-
-    if (/^\d{4}$/.test(input))
-        return new Date(input, 0, 1).getTime();
-
-    const p = input.split("-");
-    if (p.length === 3) {
-        const d = parseInt(p[0]);
-        const m = parseInt(p[1]) - 1;
-        const y = p[2].length === 2 ? parseInt("20" + p[2]) : parseInt(p[2]);
-        return new Date(y, m, d).getTime();
+            document.getElementById("searchBox").onkeyup = () => render(allData);
+            document.getElementById("categoryFilter").onchange = () => render(allData);
+        } catch (err) {
+            console.error("Error:", err);
+        }
     }
-    return null;
-}
 
-async function load() {
-    const res = await fetch(endpoint);
-    globalData = await res.json();
-    render();
-}
+    /* ⭐ Build dynamic categories without duplicates */
+    function buildCategoryDropdown(data) {
+        const dropdown = document.getElementById("categoryFilter");
 
-function openModal(title, summary, link) {
-    document.getElementById("modalTitle").textContent = title;
-    document.getElementById("modalSummary").textContent = summary || "No summary available.";
-    document.getElementById("modalLink").href = link || "#";
+        while (dropdown.options.length > 1) dropdown.remove(1);
 
-    document.getElementById("modalBg").style.display = "flex";
-}
+        const categoryMap = {};
 
-function closeModal() {
-    document.getElementById("modalBg").style.display = "none";
-}
+        data.forEach(row => {
+            const raw = (row.category || "").trim();
+            if (!raw) return;
 
-function render() {
+            const normalized = raw.toLowerCase().replace(/\s+/g, " ");
 
-    const search = document.getElementById("searchBox").value.toLowerCase();
-    const fromTs = parseSmartDate(document.getElementById("fromDate").value);
-    const toTs = parseSmartDate(document.getElementById("toDate").value);
-
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
-
-    globalData
-        .filter(r => r.description.toLowerCase().includes(search))
-        .filter(r => {
-            let rowTs = parseSmartDate(r.date);
-            if (fromTs && rowTs < fromTs) return false;
-            if (toTs && rowTs > toTs) return false;
-            return true;
-        })
-        .sort((a,b)=> parseSmartDate(b.date) - parseSmartDate(a.date))
-        .forEach(r => {
-
-            const tr = document.createElement("tr");
-
-            tr.innerHTML = `
-                <td>${r.srno}</td>
-                <td>${r.date}</td>
-                <td>
-                    <a href="#" onclick="openModal('${r.description.replace(/'/g,"")}', \`${r.summary}\`, '${r.link}')">
-                        ${r.description}
-                    </a>
-                </td>
-                <td>${r.link ? "Available" : "—"}</td>
-            `;
-
-            tbody.appendChild(tr);
+            if (!categoryMap[normalized]) categoryMap[normalized] = raw;
         });
-}
 
-function clearFilters() {
-    document.getElementById("searchBox").value = "";
-    document.getElementById("fromDate").value = "";
-    document.getElementById("toDate").value = "";
-    render();
-}
+        const finalCategories = Object.values(categoryMap).sort((a, b) => a.localeCompare(b));
 
-document.getElementById("searchBox").onkeyup = render;
-load();
+        finalCategories.forEach(cat => {
+            const opt = document.createElement("option");
+            opt.value = cat;
+            opt.textContent = cat;
+            dropdown.appendChild(opt);
+        });
+    }
 
+    /* ⭐ Render Table */
+    function render(data) {
+        const search = document.getElementById("searchBox").value.toLowerCase();
+        const selectedCat = document.getElementById("categoryFilter").value;
+        const tbody = document.getElementById("tableBody");
+
+        tbody.innerHTML = "";
+
+        data
+          .filter(row => {
+              const descMatch = row.description.toLowerCase().includes(search);
+              const catMatch = (selectedCat === "" || row.category === selectedCat);
+              return descMatch && catMatch;
+          })
+          .forEach(row => {
+              const tr = document.createElement("tr");
+
+              const desc = row.link
+                ? `<a href="${row.link}" target="_blank">${row.description}</a>`
+                : row.description;
+
+              tr.innerHTML = `
+                  <td>${row.srno}</td>
+                  <td>${row.date}</td>
+                  <td>${desc}</td>
+                  <td>${row.category}</td>
+              `;
+              tbody.appendChild(tr);
+          });
+    }
+
+    function clearFilters() {
+        document.getElementById("searchBox").value = "";
+        document.getElementById("categoryFilter").value = "";
+        document.getElementById("fromDate").value = "";
+        document.getElementById("toDate").value = "";
+        render(allData);
+    }
+
+    load();
 </script>
 
 </body>
