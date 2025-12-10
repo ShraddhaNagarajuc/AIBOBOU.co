@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AIBOBOU AAP KI AWAAZ LIST</title>
+<title>AIBOBOU CIRCULARS LIST</title>
 
 <style>
     body {
@@ -15,11 +15,10 @@
     }
     .controls {
         display: flex;
-        flex-wrap: wrap;
         gap: 15px;
         margin-bottom: 20px;
     }
-    input, select, button {
+    input, button {
         padding: 8px;
         font-size: 15px;
     }
@@ -41,8 +40,8 @@
     }
     a {
         color: #0057ff;
-        text-decoration: none;
         font-weight: 600;
+        text-decoration: none;
     }
     a:hover {
         text-decoration: underline;
@@ -52,20 +51,12 @@
 
 <body>
 
-<h2>AIBOBOU AAP KI AWAAZ LIST</h2>
+<h2>AIBOBOU CIRCULARS LIST</h2>
 
 <div class="controls">
-
     <input type="text" id="searchBox" placeholder="Search description…">
-
-    <!-- CATEGORY FILTER -->
-    <select id="categoryFilter">
-        <option value="">All Categories</option>
-    </select>
-
     <input type="text" id="fromDate" placeholder="From (dd-mm-yyyy)">
     <input type="text" id="toDate" placeholder="To (dd-mm-yyyy)">
-
     <button onclick="clearFilters()">Clear Filters</button>
 </div>
 
@@ -75,63 +66,36 @@
             <th>Sr.No</th>
             <th>Date</th>
             <th>Description</th>
-            <th>Category</th>
         </tr>
     </thead>
     <tbody id="tableBody"></tbody>
 </table>
 
 <script>
-    const endpoint = "https://script.google.com/macros/s/AKfycbziJ98z46bS9Fh7yEZK-ZzScAfcMbK9H_q5buw9CU5r56-cvguidod8f94Up4_BSPgvpw/exec";
+    // ⭐ Your Circulars Google Apps Script Endpoint
+    const endpoint =
+"https://script.google.com/macros/s/AKfycbwyCiz3xzYa1nAp5vSHpI9i7wi8TIv3Gzllh7clwbsUM45ICTgng_kvoBaKXUYwjfM9/exec";
+
     let allData = [];
 
     async function load() {
         try {
             const res = await fetch(endpoint);
             const data = await res.json();
-            allData = data;
 
-            buildCategoryDropdown(data);
-            render(data);
+            allData = data;
+            render(allData);
 
             document.getElementById("searchBox").onkeyup = () => render(allData);
-            document.getElementById("categoryFilter").onchange = () => render(allData);
+
         } catch (err) {
-            console.error("Error:", err);
+            console.error("Error loading Circulars:", err);
         }
     }
 
-    /* ⭐ Build dynamic categories without duplicates */
-    function buildCategoryDropdown(data) {
-        const dropdown = document.getElementById("categoryFilter");
-
-        while (dropdown.options.length > 1) dropdown.remove(1);
-
-        const categoryMap = {};
-
-        data.forEach(row => {
-            const raw = (row.category || "").trim();
-            if (!raw) return;
-
-            const normalized = raw.toLowerCase().replace(/\s+/g, " ");
-
-            if (!categoryMap[normalized]) categoryMap[normalized] = raw;
-        });
-
-        const finalCategories = Object.values(categoryMap).sort((a, b) => a.localeCompare(b));
-
-        finalCategories.forEach(cat => {
-            const opt = document.createElement("option");
-            opt.value = cat;
-            opt.textContent = cat;
-            dropdown.appendChild(opt);
-        });
-    }
-
-    /* ⭐ Render Table */
+    /* ⭐ Render Only 3 Columns (SrNo, Date, Description) */
     function render(data) {
         const search = document.getElementById("searchBox").value.toLowerCase();
-        const selectedCat = document.getElementById("categoryFilter").value;
         const tbody = document.getElementById("tableBody");
 
         tbody.innerHTML = "";
@@ -139,29 +103,27 @@
         data
           .filter(row => {
               const descMatch = row.description.toLowerCase().includes(search);
-              const catMatch = (selectedCat === "" || row.category === selectedCat);
-              return descMatch && catMatch;
+              return descMatch;
           })
           .forEach(row => {
               const tr = document.createElement("tr");
 
-              const desc = row.link
-                ? `<a href="${row.link}" target="_blank">${row.description}</a>`
-                : row.description;
+              const clickableDesc = row.link
+                  ? `<a href="${row.link}" target="_blank">${row.description}</a>`
+                  : row.description;
 
               tr.innerHTML = `
                   <td>${row.srno}</td>
                   <td>${row.date}</td>
-                  <td>${desc}</td>
-                  <td>${row.category}</td>
+                  <td>${clickableDesc}</td>
               `;
+
               tbody.appendChild(tr);
           });
     }
 
     function clearFilters() {
         document.getElementById("searchBox").value = "";
-        document.getElementById("categoryFilter").value = "";
         document.getElementById("fromDate").value = "";
         document.getElementById("toDate").value = "";
         render(allData);
