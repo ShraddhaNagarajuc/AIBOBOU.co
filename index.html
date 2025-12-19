@@ -17,6 +17,7 @@
         display: flex;
         gap: 15px;
         margin-bottom: 20px;
+        flex-wrap: wrap;
     }
     input, select, button {
         padding: 8px;
@@ -31,9 +32,11 @@
         padding: 12px;
         border: 1px solid #d9d9d9;
         text-align: left;
+        vertical-align: middle;
     }
     th {
         background: #e9f1ff;
+        font-weight: 600;
     }
     tr:hover {
         background: #f4f8ff;
@@ -46,6 +49,15 @@
     a:hover {
         text-decoration: underline;
     }
+
+    /* ✅ INCREASE DATE COLUMN WIDTH (2nd column) */
+    table th:nth-child(2),
+    table td:nth-child(2) {
+        width: 140px;
+        min-width: 140px;
+        white-space: nowrap;
+        text-align: center;
+    }
 </style>
 </head>
 
@@ -54,10 +66,8 @@
 <h2>AIBOBOU AAP KI AWAAZ LIST</h2>
 
 <div class="controls">
-
     <input type="text" id="searchBox" placeholder="Search description…">
 
-    <!-- ⭐ CATEGORY FILTER -->
     <select id="categoryFilter">
         <option value="">All Categories</option>
     </select>
@@ -104,41 +114,32 @@
         }
     }
 
-    /* ⭐ FIXED: DYNAMIC CATEGORY BUILDER (NO DUPLICATES) */
     function buildCategoryDropdown(data) {
         const dropdown = document.getElementById("categoryFilter");
 
-        // Clear items except "All Categories"
         while (dropdown.options.length > 1) dropdown.remove(1);
 
-        // Normalize category names
         const categoryMap = {};
         data.forEach(row => {
             const raw = (row.category || "").trim();
             if (!raw) return;
 
             const normalized = raw.toLowerCase().replace(/\s+/g, " ");
-
-            // store first version (keeps proper caps)
             if (!categoryMap[normalized]) {
                 categoryMap[normalized] = raw;
             }
         });
 
-        // Unique & sorted
-        const finalCategories = Object.values(categoryMap).sort((a, b) =>
-            a.localeCompare(b)
-        );
-
-        finalCategories.forEach(cat => {
-            const opt = document.createElement("option");
-            opt.value = cat;
-            opt.textContent = cat;
-            dropdown.appendChild(opt);
-        });
+        Object.values(categoryMap)
+            .sort((a, b) => a.localeCompare(b))
+            .forEach(cat => {
+                const opt = document.createElement("option");
+                opt.value = cat;
+                opt.textContent = cat;
+                dropdown.appendChild(opt);
+            });
     }
 
-    /* ⭐ RENDER TABLE */
     function render(data) {
         const search = document.getElementById("searchBox").value.toLowerCase();
         const selectedCat = document.getElementById("categoryFilter").value;
